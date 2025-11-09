@@ -1,0 +1,25 @@
+/* ChatWindow.css */
+.message-bubble {
+  max-width: 60%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 15px;
+  word-wrap: break-word;
+  display: inline-block;
+}
+
+/* Right side - messages from current user */
+.message-bubble.sent {
+  align-self: flex-end;
+  background: rgba(0, 128, 255, 0.2);
+  color: #fff;
+  backdrop-filter: blur(6px);
+}
+
+/* Left side - messages from others */
+.message-bubble.received {
+  align-self: flex-start;
+  background: rgba(165, 42, 42, 0.25); /* transparent brown */
+  color: #fff;
+  backdrop-filter: blur(6px);
+}

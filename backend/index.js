@@ -1,0 +1,116 @@
+const express = require("express");
+const http = require("http");
+const cors = require("cors");
+const dotenv = require("dotenv");
+dotenv.config();
+const cookieParser = require("cookie-parser");
+const morgan = require("morgan");
+const { ConnectDB } = require("./config/dbConnect");
+
+const socketIO = require("socket.io");
+const BotRoute = require("./routes/BotRoute");
+const CredentialRoute = require("./routes/CredentialRoute");
+const MessageRoute = require("./routes/MessageRoute");
+const AuthToken = require("./middleware/tokenAuth");
+const onlineUsers = new Set();
+const userSockets = new Map(); // userId -> socket.id
+
+
+const server = express();
+
+// Create http server and use it for both Express and Socket.IO
+const server1 = http.createServer(server);
+const io = socketIO(server1, {
+  cors: {
+    origin: "http://localhost:5173",
+    credentials: true,
+  },
+});
+
+server.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+server.use(express.json());
+server.use(cookieParser());
+server.use(morgan("dev"));
+
+// DB Connect
+ConnectDB();
+
+server.use("/bot", BotRoute);
+server.use("/user", CredentialRoute);
+server.use("/message", AuthToken, MessageRoute);
+
+
+
+io.on("connection", (socket) => {
+  console.log("🟢 Socket connected:", socket.id);
+
+ // Log current online users and userSockets map
+  console.log(`Current onlineUsers: ${Array.from(onlineUsers).join(", ")}`);
+  console.log(`Current userSockets:`, [...userSockets.entries()]);
+
+  // Send initial online users to this new socket
+  socket.emit("online-user", Array.from(onlineUsers));
+
+  // 🧩 When user comes online
+  socket.on("user-online", (userId) => {
+     userId = String(userId);  // normalize to string
+    onlineUsers.add(userId);
+    userSockets.set(userId, socket.id);
+
+    console.log(`${userId} is now online`);
+    console.log(`Updated onlineUsers: ${Array.from(onlineUsers).join(", ")}`);
+
+    // Emit to just the new user
+    socket.emit("online-user", Array.from(onlineUsers));
+
+    // Broadcast to others
+    socket.broadcast.emit("online-user", Array.from(onlineUsers));
+  });
+
+  // 🧩 Handle messages (no DB save here)
+  socket.on("message", (data) => {
+    console.log("📩 New message:", data);
+
+    const receiverSocketId = userSockets.get(data.receiverId);
+
+    // ✅ Send to receiver (if online)
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("message", data);
+      console.log(`Message sent to receiver: ${data.receiverId}`);
+    }
+  });
+
+  // 🧩 Handle user logout
+  socket.on("user-logout", (userId) => {
+    onlineUsers.delete(userId);
+    userSockets.delete(userId);
+    io.emit("online-user", Array.from(onlineUsers));
+    console.log(`${userId} logged out`);
+  });
+
+  // 🧩 Handle disconnect
+  socket.on("disconnect", () => {
+    const userId = [...userSockets.entries()]
+      .find(([uid, sId]) => sId === socket.id)?.[0];
+
+    if (userId) {
+      onlineUsers.delete(userId);
+      userSockets.delete(userId);
+      io.emit("online-user", Array.from(onlineUsers));
+    }
+
+    console.log("🔴 Socket disconnected:", socket.id);
+  });
+});
+
+
+
+const PORT = process.env.PORT || 9860;
+server1.listen(PORT, () => {
+  console.log(`Server is Started on port:${PORT}`);
+});

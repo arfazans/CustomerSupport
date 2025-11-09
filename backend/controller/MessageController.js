@@ -1,0 +1,130 @@
+
+
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
+const CredentialModel = require('../model/CredentialModel');
+const MessageModel = require('../model/MessageModel');
+const cloudinary = require('../config/cloudinary');
+
+
+const getUserForSidebar = async (req, res) => {
+
+    try {
+        const myId = req.user.userId;
+        // console.log("myId:", myId);
+
+
+        const users = await CredentialModel.find({_id:{$ne:myId}}).select('-password')
+        // console.log(users);
+
+        res.status(200).json({success:true,users});
+
+
+    } catch (error) {
+        console.log("Error in getUserForSidebar:", error);
+        res.status(500).json({ error: "getUserForSidebar Controller Error",error });
+    }
+}
+
+const getMessages = async (req, res) => {
+    try {
+        const {id:userToChatId} = req.params
+        const myId = req.user.userId;
+
+        const messages =await MessageModel.find({
+            $or:[
+            {senderId:myId,receiverId:userToChatId},
+            {senderId:userToChatId,receiverId:myId}
+            ]
+        })
+        res.status(200).json( {success:true,messages} );
+    } catch (error) {
+        console.log("Error in getMessages:", error);
+        res.status(500).json({ error: "getMessages Controller Error",error });
+    }
+}
+
+const sendMessage = async (req, res) => {
+    try {
+        const {text,image} = req.body;
+        const {id:receiverId} = req.params;
+        const senderId = req.user.userId;
+
+        if(!text&&!image){
+            return res.status(400).json({error:"Message is empty"})
+        }
+        let imageUrl;
+        if(image){
+            // upload the base64 image to cloudinary
+            const uploadResponse = await cloudinary.uploader.upload(image);
+            imageUrl = uploadResponse.secure_url;
+        }
+
+        const newMessage = new MessageModel({
+            senderId,
+            receiverId,
+            text,
+            image:imageUrl
+        })
+        await newMessage.save();
+
+        //real time functionality goes here using socket.io
+
+        res.status(200).json({success:true,message:newMessage
+        })
+    } catch (error) {
+        console.log("Error in sendMessage:", error);
+        res.status(500).json({ error: "sendMessage Controller Error",error });
+
+    }
+}
+
+
+const getRecentMessages = async (req, res) => {
+  try {
+    const myId = new mongoose.Types.ObjectId(req.user.userId)
+ // <== convert string to ObjectId
+
+    // Aggregate to get the latest message for each conversation
+    const recentMessages = await MessageModel.aggregate([
+      {
+        $match: {
+          $or: [
+            { senderId: myId },
+            { receiverId: myId }
+          ]
+        }
+      },
+      {
+        $sort: { createdAt: -1 }
+      },
+      {
+        $group: {
+          _id: {
+            $cond: [
+              { $eq: ["$senderId", myId] },
+              "$receiverId",
+              "$senderId"
+            ]
+          }, // group by the other user ID in the conversation
+          text: { $first: "$text" },
+          createdAt: { $first: "$createdAt" }
+        }
+      }
+    ]);
+
+    // Format result as an object: { userId: lastMessageText }
+    const result = {};
+    recentMessages.forEach(msg => {
+      result[msg._id.toString()] = msg.text;
+    });
+
+    res.status(200).json({ success: true, recentMessages: result });
+  } catch (error) {
+    console.log("Error in getRecentMessages:", error);
+    res.status(500).json({ error: "getRecentMessages Controller Error", error });
+  }
+}
+
+
+module.exports = { getUserForSidebar, getMessages, sendMessage,getRecentMessages};

@@ -1,0 +1,2 @@
+Jwt initialize for authentication (hassing password , matching password in the credential model)
+when use fetch or axios for frontend we have to configure cors from backend and also form the frontend url for properly geting token into the client
