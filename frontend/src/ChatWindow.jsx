@@ -8,7 +8,9 @@ const ChatWindow = ({ showChatbot, userid, sendigToUsersId }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef(null);
-  const { socket,updateRecentMessage  } = useContext(NoteContext);
+  const { socket,updateRecentMessage,setUnreadUsers,unreadUsers   } = useContext(NoteContext);
+
+
 
   // 🔹 Scroll to bottom when new messages come
   useEffect(() => {
@@ -102,6 +104,42 @@ const ChatWindow = ({ showChatbot, userid, sendigToUsersId }) => {
       handleSendMessage();
     }
   };
+
+//For mark read to true for seen message
+ useEffect(() => {
+  if (!sendigToUsersId) return;
+
+  // Immediately clear the unread indicator locally
+  setUnreadUsers((prev) => {
+    if (!(sendigToUsersId in prev)) return prev; // no change if already cleared
+    const updated = { ...prev };
+    delete updated[sendigToUsersId];
+    return updated;
+  });
+
+  // Call backend and emit read event as before
+  const markRead = async () => {
+    try {
+      await axios.post(
+        `http://localhost:9860/message/read/${sendigToUsersId}`,
+        {},
+        { withCredentials: true }
+      );
+
+      if (socket.current) {
+        socket.current.emit("read", {
+          senderId: sendigToUsersId,
+          receiverId: userid,
+        });
+      }
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+    }
+  };
+
+  markRead();
+}, [sendigToUsersId, userid, socket, setUnreadUsers]);
+
 
   return (
     <div className="flex flex-col h-full w-full bg-transparent border border-gray-300">

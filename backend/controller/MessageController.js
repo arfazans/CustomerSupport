@@ -119,7 +119,18 @@ const getRecentMessages = async (req, res) => {
       result[msg._id.toString()] = msg.text;
     });
 
-    res.status(200).json({ success: true, recentMessages: result });
+    // Find users who have unread messages for current user
+const unreadMessages = await MessageModel.aggregate([
+  { $match: { receiverId: myId, read: false } },
+  { $group: { _id: "$senderId" } }
+]);
+
+const unreadUsers = {};
+unreadMessages.forEach(msg => {
+  unreadUsers[msg._id.toString()] = true;
+});
+
+    res.status(200).json({ success: true, recentMessages: result ,unreadUsers });
   } catch (error) {
     console.log("Error in getRecentMessages:", error);
     res.status(500).json({ error: "getRecentMessages Controller Error", error });
@@ -127,4 +138,21 @@ const getRecentMessages = async (req, res) => {
 }
 
 
-module.exports = { getUserForSidebar, getMessages, sendMessage,getRecentMessages};
+const markMessagesRead = async (req, res) => {
+  try {
+    const receiverId = req.user.id; // from tokenAuth or session
+    const senderId = req.params.id;
+
+    await Message.updateMany(
+      { senderId, receiverId, read: false },
+      { $set: { read: true } }
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+
+module.exports = { getUserForSidebar, getMessages, sendMessage,getRecentMessages,markMessagesRead};

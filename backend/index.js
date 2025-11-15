@@ -85,6 +85,24 @@ io.on("connection", (socket) => {
     }
   });
 
+   // Add this new "read" event listener to mark messages as read
+  socket.on("read", async ({ senderId, receiverId }) => {
+    try {
+      await Message.updateMany(
+        { senderId, receiverId, read: false },
+        { $set: { read: true } }
+      );
+
+      // Notify sender to update their UI about read messages
+      const senderSocket = userSockets.get(senderId);
+      if (senderSocket) {
+        io.to(senderSocket).emit("messages-read", { receiverId });
+      }
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+    }
+  });
+
   // 🧩 Handle user logout
   socket.on("user-logout", (userId) => {
     onlineUsers.delete(userId);
