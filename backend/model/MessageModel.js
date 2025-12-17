@@ -4,10 +4,12 @@ const {Schema} = mongoose;
 
 const messageSchema = new mongoose.Schema({
   senderId: { type: Schema.Types.ObjectId, ref: 'Credential', required: true },
-  receiverId: { type: Schema.Types.ObjectId, ref: 'Credential', required: true },
+  receiverId: { type: Schema.Types.ObjectId, ref: 'Credential' }, // Optional for group messages
+  groupId: { type: Schema.Types.ObjectId, ref: 'Group' }, // Optional for direct messages
+  messageType: { type: String, enum: ['direct', 'group'], default: 'direct' },
   text: { type: String },
   image: { type: String },
-    read: { type: Boolean, default: false }  // NEW
+  read: { type: Boolean, default: false }
 }, { timestamps: true });
 
 

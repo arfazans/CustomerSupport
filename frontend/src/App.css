@@ -1,3 +1,7 @@
+
+
+
+
 /* ChatWindow.css */
 .message-bubble {
   max-width: 60%;
@@ -7,6 +11,9 @@
   word-wrap: break-word;
   display: inline-block;
 }
+
+
+
 
 /* Right side - messages from current user */
 .message-bubble.sent {
@@ -23,3 +30,4 @@
   color: #fff;
   backdrop-filter: blur(6px);
 }
+

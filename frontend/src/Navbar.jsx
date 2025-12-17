@@ -5,6 +5,7 @@ import { NavLink } from "react-router-dom";
 import { NoteContext } from "./ContextApi/CreateContext";
 import Logo from "./assets/LogoBG.png";
 import styled from "styled-components";
+import toast from "react-hot-toast"
 
 function Navbar() {
   const URL = "http://localhost:9860";
@@ -23,7 +24,7 @@ function Navbar() {
         { withCredentials: true }
       );
       if (response.data.success) {
-        alert("Logout Successfully");
+        toast.success("Logout Successfully");
         setUserId(null); // <-- Clear userId in context here
         navigate("/");
       }
@@ -111,7 +112,7 @@ function Navbar() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-end gap-y-3 py-2 md:py-0 md:ps-7">
             <a
               className="pe-3 ps-px sm:px-3 md:py-4 text-sm text-black hover:text-neutral-700 focus:outline-none focus:text-neutral-700"
-              href="../templates/agency/index.html"
+              href="/dashboard"
               aria-current="page"
             >
               Home
@@ -124,15 +125,15 @@ function Navbar() {
             </a>
             <a
               className="pe-3 ps-px sm:px-3 md:py-4 text-sm text-black hover:text-neutral-700 focus:outline-none focus:text-neutral-700"
-              href="#"
+              href="/userProfile"
             >
-              Reviews
+              Profile
             </a>
             <a
               className="pe-3 ps-px sm:px-3 md:py-4 text-sm text-black hover:text-neutral-700 focus:outline-none focus:text-neutral-700"
-              href="#"
+              href="/groupsFunctionality"
             >
-              Approach
+               Groups
             </a>
           </div>
         </div>

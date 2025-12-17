@@ -4,6 +4,8 @@ import loginImage from "./assets/loginImage3.jpg";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { NoteContext } from "./ContextApi/CreateContext";
+import toast, { Toaster } from 'react-hot-toast';
+
 
 function Login() {
   const URL = "http://localhost:9860";
@@ -28,14 +30,14 @@ function Login() {
       if (result.status === 200) {
         setUserId(result.data.userId);
 
-        alert("SignUp Successful");
+        toast.success("SignUp Successful");
 
         setsignUpData({ name: "", email: "", password: "" }); // Reset all fields
         navigate("/dashboard");
       }
     } catch (err) {
       console.log(err);
-      alert("SignUp Failed");
+      toast.error("SignUp Failed");
     }
   };
 
@@ -49,14 +51,14 @@ function Login() {
       if (result.status === 200) {
         setUserId(result.data.userId);
 
-        alert("login Successful");
+        toast.success("login Successful");
         setloginData({ email: "", password: "" }); // Reset all fields
 
         navigate("/dashboard");
       }
     } catch (err) {
       console.log(err);
-      alert("Login Failed");
+      toast.error("Login Failed");
     }
   };
 

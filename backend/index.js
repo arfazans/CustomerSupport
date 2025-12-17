@@ -12,6 +12,7 @@ const socketIO = require("socket.io");
 const BotRoute = require("./routes/BotRoute");
 const CredentialRoute = require("./routes/CredentialRoute");
 const MessageRoute = require("./routes/MessageRoute");
+const GroupRoute = require("./routes/GroupRoute");
 const AuthToken = require("./middleware/tokenAuth");
 const Message = require("./model/MessageModel");
 const onlineUsers = new Set();
@@ -45,6 +46,7 @@ ConnectDB();
 server.use("/bot", BotRoute);
 server.use("/user", CredentialRoute);
 server.use("/message", AuthToken, MessageRoute);
+server.use("/group", AuthToken, GroupRoute);
 
 
 
@@ -137,6 +139,38 @@ socket.on("stopTyping", ({ to, from }) => {
     } catch (error) {
       console.error("Error marking messages as read:", error);
     }
+  });
+
+  // 🔹 GROUP SOCKET EVENTS
+  
+  // Join group room
+  socket.on("join-group", (groupId) => {
+    socket.join(groupId);
+    console.log(`Socket ${socket.id} joined group: ${groupId}`);
+  });
+
+  // Leave group room
+  socket.on("leave-group", (groupId) => {
+    socket.leave(groupId);
+    console.log(`Socket ${socket.id} left group: ${groupId}`);
+  });
+
+  // Handle group messages
+  socket.on("group-message", (data) => {
+    console.log("📩 New group message:", data);
+    // Broadcast to all users in the group room (including sender)
+    io.to(data.groupId).emit("group-message", data);
+  });
+
+  // Handle group typing
+  socket.on("group-typing", ({ groupId, from, userName }) => {
+    // Send to all users in group except sender
+    socket.to(groupId).emit("group-typing", { from, userName });
+  });
+
+  // Handle group stop typing
+  socket.on("group-stop-typing", ({ groupId, from, userName }) => {
+    socket.to(groupId).emit("group-stop-typing", { from, userName });
   });
 
   // 🧩 Handle user logout
