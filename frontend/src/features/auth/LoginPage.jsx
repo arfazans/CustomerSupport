@@ -1,13 +1,12 @@
 import React, { useState, useContext } from "react";
 import styled from "styled-components";
-import loginImage from "./assets/loginImage3.jpg";
+import loginImage from "../../assets/loginImage3.jpg";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { NoteContext } from "./ContextApi/CreateContext";
+import { NoteContext } from "../../ContextApi/CreateContext";
 import toast, { Toaster } from 'react-hot-toast';
 
-
-function Login() {
+function LoginPage() {
   const URL = "http://localhost:9860";
   const { setUserId } = useContext(NoteContext);
   const [checked, setchecked] = useState(false);
@@ -181,7 +180,7 @@ function Login() {
 
         <ImageWrapper>
           <h1 className="text-3xl md:text-4xl lg:text-5xl text-blue-100 mb-2 font-extrabold text-center leading-tight">
-            Welcome To chatNation!!
+            Welcome To planTogether!!
           </h1>
           <h3 className="text-lg md:text-xl lg:text-2xl text-blue-500 font-bold text-center">
             Your DigiTal World
@@ -576,7 +575,7 @@ const ImageWrapper = styled.div`
     white-space: normal;
     line-height: 1.2;
   }
-  
+
   h3 {
     color: #8392ab;
     text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);
@@ -602,15 +601,15 @@ const ImageWrapper = styled.div`
     min-width: 100%;
     height: auto;
     padding: 0.75rem;
-    
+
     h1 {
       font-size: 2rem;
     }
-    
+
     h3 {
       font-size: 1.25rem;
     }
-    
+
     img {
       max-height: 200px;
     }
@@ -620,11 +619,11 @@ const ImageWrapper = styled.div`
     h1 {
       font-size: 1.75rem;
     }
-    
+
     h3 {
       font-size: 1rem;
     }
-    
+
     img {
       max-height: 150px;
       margin-top: 0.5rem;
@@ -644,4 +643,5 @@ const ImageWrapper = styled.div`
   }
 `;
 
-export default Login;
+export default LoginPage;
+

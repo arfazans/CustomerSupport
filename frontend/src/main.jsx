@@ -1,30 +1,28 @@
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import Login from "./login.jsx";
-import Dashboard from "./Dashboard.jsx";
-import GroupsFunctionality from "./GroupsFunctionality.jsx"
-import Profile from "./Profile.jsx";
+import { LoginPage, ProfilePage, AuthProtectedRoute } from "./features/auth";
+import { Dashboard } from "./features/dashboard";
+import { GroupsManagementPage } from "./features/groups";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import NoteState from "./ContextApi/Notestate.jsx";
-import ProtectedRoute from "./ProtectedRoute.jsx";
 import { Toaster } from "react-hot-toast";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Login />,
+    element: <LoginPage />,
   },
   {
     path: "/dashboard",
-    element: <ProtectedRoute><Dashboard /></ProtectedRoute>,
+    element: <AuthProtectedRoute><Dashboard /></AuthProtectedRoute>,
   },
   {
     path:"/groupsFunctionality",
-    element:<ProtectedRoute><GroupsFunctionality/></ProtectedRoute>
+    element:<AuthProtectedRoute><GroupsManagementPage/></AuthProtectedRoute>
   },
   {
     path:"/userProfile",
-    element:<ProtectedRoute><Profile/></ProtectedRoute>
+    element:<AuthProtectedRoute><ProfilePage/></AuthProtectedRoute>
   }
 ]);
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react'
-import './Profile.css'
-import Navbar from './Navbar'
-import { NoteContext } from './ContextApi/CreateContext'
+import './ProfilePage.css'
+import { Navbar } from '../../shared'
+import { NoteContext } from '../../ContextApi/CreateContext'
 import axios from 'axios'
 
 function Profile() {
@@ -11,7 +11,7 @@ function Profile() {
   const [isEditing, setIsEditing] = useState(false)
   const [showAddPost, setShowAddPost] = useState(false)
   const [editingPost, setEditingPost] = useState(null)
-  
+
   // Form states
   const [editForm, setEditForm] = useState({ name: '' })
   const [profileImageFile, setProfileImageFile] = useState(null)
@@ -21,7 +21,9 @@ function Profile() {
   const [showComments, setShowComments] = useState({})
   const [newComment, setNewComment] = useState({})
   const [showLikes, setShowLikes] = useState({})
-  
+  const [zoomedImage, setZoomedImage] = useState(null)
+  const [zoomLevel, setZoomLevel] = useState(1)
+
   const URL = "http://localhost:9860"
 
   // Fetch user profile and posts
@@ -35,7 +37,6 @@ function Profile() {
   const fetchUserProfile = async () => {
     try {
       const res = await axios.get(`${URL}/user/check-auth`, { withCredentials: true })
-      console.log('User data:', res.data)
       setUser(res.data)
       setEditForm({ name: res.data.name })
     } catch (error) {
@@ -48,6 +49,8 @@ function Profile() {
       const res = await axios.get(`${URL}/post/user`, { withCredentials: true })
       if (res.data.success) {
         setPosts(res.data.posts)
+        console.log("posts are =",posts);
+
       }
     } catch (error) {
       console.error('Error fetching posts:', error)
@@ -61,8 +64,8 @@ function Profile() {
       if (profileImageFile) {
         formData.append('profileImage', profileImageFile)
       }
-      
-      const res = await axios.put(`${URL}/user/profile-update`, formData, { 
+
+      const res = await axios.put(`${URL}/user/profile-update`, formData, {
         withCredentials: true,
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -88,8 +91,8 @@ function Profile() {
       if (postImageFile) {
         formData.append('postImage', postImageFile)
       }
-      
-      const res = await axios.post(`${URL}/post/create`, formData, { 
+
+      const res = await axios.post(`${URL}/post/create`, formData, {
         withCredentials: true,
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -144,7 +147,7 @@ function Profile() {
   const handleAddComment = async (postId) => {
     const commentText = newComment[postId]
     if (!commentText?.trim()) return
-    
+
     try {
       const res = await axios.post(`${URL}/post/${postId}/comment`, { text: commentText }, { withCredentials: true })
       if (res.data.success) {
@@ -156,6 +159,22 @@ function Profile() {
     }
   }
 
+  const handleZoomWheel = (e) => {
+    e.preventDefault()
+    const delta = e.deltaY > 0 ? -0.1 : 0.1
+    setZoomLevel(prev => Math.max(0.5, Math.min(3, prev + delta)))
+  }
+
+  const openZoom = (imageSrc) => {
+    setZoomedImage(imageSrc)
+    setZoomLevel(1)
+  }
+
+  const closeZoom = () => {
+    setZoomedImage(null)
+    setZoomLevel(1)
+  }
+
   if (!user) return <div>Loading...</div>
 
   return (
@@ -165,7 +184,7 @@ function Profile() {
           <div className="absolute top-0 w-full h-full bg-center bg-cover hero-background">
             <span id="blackOverlay" className="w-full h-full absolute opacity-50 bg-black"></span>
             <div className="navbar-overlay">
-              <Navbar />
+              <Navbar currentPage="profile" />
             </div>
             <div className="hero-text-overlay">
               <div className="hero-workflow">
@@ -185,7 +204,7 @@ function Profile() {
             </svg>
           </div>
         </section>
-        
+
         <section className="relative py-16 bg-blueGray-200">
           <div className="container mx-auto px-4">
             <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64">
@@ -194,10 +213,10 @@ function Profile() {
                   <div className="w-full lg:w-3/12 px-4 lg:order-2 flex justify-center">
                     <div className="relative">
                       {console.log('Profile image URL:', user.profileImage || 'No profile image')}
-                      <img 
-                        alt="Profile picture" 
-                        src={user.profileImage || "https://demos.creative-tim.com/notus-js/assets/img/team-2-800x800.jpg"} 
-                        className="shadow-xl rounded-full border-none w-32 h-32 object-cover" 
+                      <img
+                        alt="Profile picture"
+                        src={user.profileImage || "https://demos.creative-tim.com/notus-js/assets/img/team-2-800x800.jpg"}
+                        className="shadow-xl rounded-full border-none w-32 h-32 object-cover"
                         onError={(e) => {
                           console.log('Image failed to load:', e.target.src)
                           e.target.src = "https://demos.creative-tim.com/notus-js/assets/img/team-2-800x800.jpg"
@@ -206,44 +225,44 @@ function Profile() {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="w-full lg:w-4/12 px-4 lg:order-3 lg:text-right lg:self-center">
                     <div className="py-6 px-3 mt-32 sm:mt-0 flex flex-wrap gap-2 justify-center lg:justify-end">
-                      <button 
+                      <button
                         onClick={() => setIsEditing(!isEditing)}
-                        className="bg-blue-500 active:bg-blue-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none ease-linear transition-all duration-150" 
+                        className="bg-blue-500 active:bg-blue-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none ease-linear transition-all duration-150"
                         type="button"
                       >
                         {isEditing ? 'Cancel' : 'Edit'}
                       </button>
-                      <button 
+                      <button
                         onClick={() => setShowAddPost(!showAddPost)}
-                        className="bg-green-500 active:bg-green-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none ease-linear transition-all duration-150" 
+                        className="bg-green-500 active:bg-green-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none ease-linear transition-all duration-150"
                         type="button"
                       >
                         Add Post
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="w-full lg:w-4/12 px-4 lg:order-1">
                     <div className="flex justify-center py-4 lg:pt-4 pt-8">
                       <div className="mr-4 p-3 text-center">
-                        <span className="text-xl font-bold block uppercase tracking-wide text-blueGray-600">22</span>
-                        <span className="text-sm text-blueGray-400">Friends</span>
+                        <span className="text-xl font-bold block uppercase tracking-wide text-blueGray-600">{posts.map(post => post.likes.length).reduce((a, b) => a + b, 0)}</span>
+                        <span className="text-sm text-blueGray-400">Likes</span>
                       </div>
                       <div className="mr-4 p-3 text-center">
                         <span className="text-xl font-bold block uppercase tracking-wide text-blueGray-600">{posts.length}</span>
                         <span className="text-sm text-blueGray-400">Posts</span>
                       </div>
                       <div className="lg:mr-4 p-3 text-center">
-                        <span className="text-xl font-bold block uppercase tracking-wide text-blueGray-600">89</span>
+                        <span className="text-xl font-bold block uppercase tracking-wide text-blueGray-600">{posts.map(post => post.comments.length).reduce((a, b) => a + b, 0)}</span>
                         <span className="text-sm text-blueGray-400">Comments</span>
                       </div>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="text-center mt-12">
                   <h3 className="text-4xl font-semibold leading-normal mb-2 text-blueGray-700">
                     {user.name}
@@ -361,7 +380,7 @@ function Profile() {
                                   <p className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</p>
                                 </div>
                               </div>
-                              
+
                               {post.userId._id === userId && (
                                 <div className="relative">
                                   <button
@@ -392,7 +411,7 @@ function Profile() {
                                 </div>
                               )}
                             </div>
-                            
+
                             {post.groupName && (
                               <div className="mb-2">
                                 <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
@@ -400,7 +419,7 @@ function Profile() {
                                 </span>
                               </div>
                             )}
-                            
+
                             {editingPost === `edit-${post._id}` ? (
                               <div className="space-y-2">
                                 <textarea
@@ -428,35 +447,36 @@ function Profile() {
                               <p className="text-gray-700 text-sm mb-3">{post.caption}</p>
                             )}
                           </div>
-                          
+
                           {post.image && (
                             <img
                               src={post.image}
                               alt="Post"
-                              className="w-full h-56 object-cover"
+                              className="w-full h-56 object-cover cursor-zoom-in hover:opacity-90 transition-opacity"
+                              onClick={() => openZoom(post.image)}
                             />
                           )}
-                          
+
                           {/* Post Actions */}
                           <div className="p-4 pt-3">
                             <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center space-x-4">
                                 <div className="flex items-center space-x-1">
-                                  <button 
+                                  <button
                                     onClick={() => handleLikePost(post._id)}
                                     className="transition-colors"
                                   >
-                                    <svg 
-                                      className={`w-5 h-5 ${post.likes?.some(like => like._id === userId) ? 'text-red-500 fill-current' : 'text-gray-600'}`} 
-                                      fill={post.likes?.some(like => like._id === userId) ? 'currentColor' : 'none'} 
-                                      stroke="currentColor" 
+                                    <svg
+                                      className={`w-5 h-5 ${post.likes?.some(like => like._id === userId) ? 'text-red-500 fill-current' : 'text-gray-600'}`}
+                                      fill={post.likes?.some(like => like._id === userId) ? 'currentColor' : 'none'}
+                                      stroke="currentColor"
                                       viewBox="0 0 24 24"
                                     >
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                     </svg>
                                   </button>
                                   <span className="text-sm font-medium">{post.likes?.length || 0}</span>
-                            <button 
+                            <button
                               onClick={() => {
                                 setShowLikes({...showLikes, [post._id]: !showLikes[post._id]});
                                 if (!showLikes[post._id]) {
@@ -469,7 +489,7 @@ function Profile() {
                             </button>
                                 </div>
                                 <div className="flex items-center space-x-1">
-                                  <button 
+                                  <button
                                     onClick={() => {
                                       setShowComments({...showComments, [post._id]: !showComments[post._id]});
                                       if (!showComments[post._id]) {
@@ -487,7 +507,7 @@ function Profile() {
                                 </div>
                               </div>
                             </div>
-                            
+
                             {/* Show likes */}
                             {showLikes[post._id] && post.likes?.length > 0 && (
                               <div className="mb-2 p-3 bg-gray-50 rounded text-sm">
@@ -495,9 +515,9 @@ function Profile() {
                                 <div className="space-y-2 max-h-32 overflow-y-auto">
                                   {post.likes.map((like) => (
                                     <div key={like._id} className="flex items-center space-x-2">
-                                      <img 
-                                        src={like.profileImage || "https://demos.creative-tim.com/notus-js/assets/img/team-2-800x800.jpg"} 
-                                        alt="Profile" 
+                                      <img
+                                        src={like.profileImage || "https://demos.creative-tim.com/notus-js/assets/img/team-2-800x800.jpg"}
+                                        alt="Profile"
                                         className="w-6 h-6 rounded-full flex-shrink-0"
                                       />
                                       <span className="text-gray-700 font-medium">{like.name}</span>
@@ -506,7 +526,7 @@ function Profile() {
                                 </div>
                               </div>
                             )}
-                            
+
                             {/* Comments */}
                             {showComments[post._id] && (
                               <div className="mt-3">
@@ -527,15 +547,15 @@ function Profile() {
                                     Post
                                   </button>
                                 </div>
-                                
+
                                 {/* Comments list - scrollable, max height */}
                                 {post.comments?.length > 0 && (
                                   <div className="max-h-32 overflow-y-auto space-y-2">
                                     {post.comments.slice().reverse().map((comment) => (
                                       <div key={comment._id} className="flex space-x-2 text-sm">
-                                        <img 
-                                          src={comment.userId.profileImage || "https://demos.creative-tim.com/notus-js/assets/img/team-2-800x800.jpg"} 
-                                          alt="Profile" 
+                                        <img
+                                          src={comment.userId.profileImage || "https://demos.creative-tim.com/notus-js/assets/img/team-2-800x800.jpg"}
+                                          alt="Profile"
                                           className="w-6 h-6 rounded-full flex-shrink-0"
                                         />
                                         <div className="flex-1">
@@ -557,7 +577,7 @@ function Profile() {
               </div>
             </div>
           </div>
-          
+
           <footer className="relative bg-blueGray-200 pt-8 pb-6 mt-8">
             <div className="container mx-auto px-4">
               <div className="flex flex-wrap items-center md:justify-between justify-center">
@@ -571,6 +591,34 @@ function Profile() {
           </footer>
         </section>
       </main>
+
+      {/* Image Zoom Modal */}
+      {zoomedImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 cursor-zoom-out"
+          onClick={closeZoom}
+          onWheel={handleZoomWheel}
+        >
+          <div className="relative max-w-[90vw] max-h-[90vh] flex items-center justify-center">
+            <img
+              src={zoomedImage}
+              alt="Zoomed Post"
+              className="max-w-full max-h-full object-contain cursor-zoom-out transition-transform duration-200"
+              style={{ transform: `scale(${zoomLevel})` }}
+              onClick={closeZoom}
+            />
+            <button
+              onClick={closeZoom}
+              className="absolute top-4 right-4 text-white text-3xl hover:text-gray-300 transition-colors"
+            >
+              ×
+            </button>
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black bg-opacity-50 px-3 py-1 rounded">
+              Zoom: {Math.round(zoomLevel * 100)}% • Scroll to zoom
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

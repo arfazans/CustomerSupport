@@ -1,0 +1,1 @@
+export { default as UserListStatic } from './UserListStatic.jsx';

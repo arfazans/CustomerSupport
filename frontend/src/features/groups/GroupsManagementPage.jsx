@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useContext } from 'react'
-import Navbar from './Navbar';
+import { Navbar } from '../../shared';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { NoteContext } from './ContextApi/CreateContext';
-import bg1 from './assets/bg-1.jpg';
-import bg2 from './assets/bg-2.jpg';
-import bg9 from './assets/bg-9.png';
-import bg10 from './assets/bg-10.png';
-import bg11 from './assets/bg-11.png';
-import bg12 from './assets/bg-12.png';
+import { NoteContext } from '../../ContextApi/CreateContext';
+import bg1 from '../../assets/bg-1.jpg';
+import bg2 from '../../assets/bg-2.jpg';
+import bg9 from '../../assets/bg-9.png';
+import bg10 from '../../assets/bg-10.png';
+import bg11 from '../../assets/bg-11.png';
+import bg12 from '../../assets/bg-12.png';
 
-function GroupsFunctionality() {
+function GroupsManagementPage() {
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
   const [allGroups, setAllGroups] = useState([]);
   const [userGroups, setUserGroups] = useState([]);
@@ -24,6 +24,8 @@ function GroupsFunctionality() {
 
   const { userId } = useContext(NoteContext);
   const backgroundImages = [bg1, bg2, bg9, bg10, bg11, bg12];
+
+
 
   // Fetch all groups and user's groups
   useEffect(() => {
@@ -204,7 +206,7 @@ function GroupsFunctionality() {
           backgroundRepeat: 'no-repeat'
         }}
       />
-      <Navbar />
+      <Navbar currentPage="groups" />
 
       <main className="relative z-10 h-screen overflow-hidden">
         <div className='h-full w-full flex items-center justify-center pt-14 px-4'>
@@ -442,4 +444,4 @@ function GroupsFunctionality() {
   )
 }
 
-export default GroupsFunctionality
+export default GroupsManagementPage

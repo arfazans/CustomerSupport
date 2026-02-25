@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
-import { Send } from "lucide-react";
-import { NoteContext } from "./ContextApi/CreateContext";
+import { Send, ArrowLeft } from "lucide-react";
+import { NoteContext } from "../../../ContextApi/CreateContext";
 import axios from "axios";
 
-//showChatbot is for the right side bot window to maintain the design of the send button of middle send button in dashboard
-const ChatWindow = ({ showChatbot, userid, sendigToUsersId, otherUserName }) => {
+const ChatWindow = ({ showChatbot, userid, sendigToUsersId, otherUserName, onBack }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef(null);
@@ -179,6 +178,11 @@ const ChatWindow = ({ showChatbot, userid, sendigToUsersId, otherUserName }) => 
       {/* Sticky Header */}
       <div className="sticky top-0 z-10 px-4 py-2 border-b border-gray-300 bg-white shadow-sm">
         <div className="flex items-center justify-between">
+          {onBack && (
+            <button onClick={onBack} className="mr-3 md:hidden">
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+          )}
           <h3 className="text-base font-semibold text-gray-800">
             {otherUserName || 'User'}
           </h3>

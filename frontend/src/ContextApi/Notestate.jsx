@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { connectWS } from "../socket";
+import { connectWS } from "../shared";
 import { NoteContext } from "./CreateContext";
 import axios from "axios";
 const NoteState = ({ children }) => {

@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
 import { Send } from "lucide-react";
 import axios from "axios";
-import { NoteContext } from "./ContextApi/CreateContext";
-import PollMessage from "./PollMessage";
+import { NoteContext } from "../../../ContextApi/CreateContext";
+import PollMessage from "../../messaging/components/PollMessageComponent";
 
 const EditPlanForm = ({ plan, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
